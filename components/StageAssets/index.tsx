@@ -592,7 +592,8 @@ const StageAssets: React.FC<Props> = ({ project, updateProject, onApiKeyError, o
         setShapeReferenceImage(newData, type, id, base64);
         return { ...prev, scriptData: newData };
       });
-      showAlert('已设置形状参考图。生成时将保持当前剧本风格，仅参考轮廓和比例。', { type: 'success' });
+      const typeLabel = type === 'character' ? '角色' : type === 'scene' ? '场景' : '道具';
+      showAlert(`已设置${typeLabel}参考图。生成时将保持当前剧本风格，仅参考构图和外形。`, { type: 'success' });
     } catch (e: any) {
       showAlert(e.message, { type: 'error' });
     }

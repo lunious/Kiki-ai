@@ -174,13 +174,13 @@ const SceneCard: React.FC<SceneCardProps> = ({
 
         <div className="mt-3 pt-3 border-t border-[var(--border-primary)]">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-mono text-[var(--text-tertiary)] uppercase tracking-wider">Shape Reference</span>
+            <span className="text-[10px] font-mono text-[var(--text-tertiary)] uppercase tracking-wider">场景参考图</span>
             {shapeReferenceImage && (
               <button
                 onClick={onClearShapeReference}
                 disabled={isGenerating}
                 className="text-[9px] text-[var(--text-tertiary)] hover:text-[var(--text-primary)] disabled:opacity-30"
-                title="Clear shape reference"
+                title="清除场景参考图"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -189,7 +189,7 @@ const SceneCard: React.FC<SceneCardProps> = ({
           <div className="flex items-center gap-2">
             <label className="px-2 py-1 bg-[var(--bg-hover)] border border-[var(--border-secondary)] rounded text-[9px] font-bold uppercase tracking-wider text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer flex items-center gap-1">
               <Upload className="w-3 h-3" />
-              Upload Shape Ref
+              上传场景参考图
               <input
                 type="file"
                 accept="image/*"
@@ -197,15 +197,15 @@ const SceneCard: React.FC<SceneCardProps> = ({
                 onChange={handleShapeReferenceChange}
               />
             </label>
-            <span className="text-[9px] text-[var(--text-muted)]">Shape only, style follows script</span>
+            <span className="text-[9px] text-[var(--text-muted)]">仅参考场景构图，风格遵循剧本</span>
           </div>
           {shapeReferenceImage && (
             <button
               onClick={() => onImageClick(shapeReferenceImage)}
               className="mt-2 w-full flex items-center gap-2 p-2 rounded border border-[var(--border-primary)] hover:border-[var(--border-secondary)] transition-colors text-left"
             >
-              <img src={shapeReferenceImage} alt="Shape reference" className="w-10 h-10 rounded object-cover" />
-              <span className="text-[10px] text-[var(--text-secondary)]">Shape reference ready for next generation</span>
+              <img src={shapeReferenceImage} alt="场景参考图" className="w-10 h-10 rounded object-cover" />
+              <span className="text-[10px] text-[var(--text-secondary)]">已设置场景参考图，下次生成将生效</span>
             </button>
           )}
         </div>
