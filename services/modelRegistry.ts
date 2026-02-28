@@ -324,7 +324,22 @@ export const getModels = (type?: ModelType): ModelDefinition[] => {
     m => !(m.type === 'video' && m.isBuiltIn && m.id === 'veo')
   );
   if (type) {
-    return models.filter(m => m.type === type);
+    const typedModels = models.filter(m => m.type === type);
+
+    // Keep sora-2 at the top of video model lists while preserving relative order for others.
+    if (type === 'video') {
+      return typedModels
+        .map((model, index) => ({ model, index }))
+        .sort((a, b) => {
+          const aPriority = a.model.id === 'sora-2' ? 0 : 1;
+          const bPriority = b.model.id === 'sora-2' ? 0 : 1;
+          if (aPriority !== bPriority) return aPriority - bPriority;
+          return a.index - b.index;
+        })
+        .map(item => item.model);
+    }
+
+    return typedModels;
   }
   return models;
 };
