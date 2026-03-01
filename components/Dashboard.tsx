@@ -6,6 +6,7 @@ import { useAlert } from './GlobalAlert';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import qrCodeImg from '../images/qrcode.jpg';
+import wxQrImg from '../images/wx.jpg';
 import {
   useBackupTransfer,
   DEFAULT_BACKUP_TRANSFER_MESSAGES,
@@ -304,7 +305,7 @@ const Dashboard: React.FC<Props> = ({ onOpenProject, onShowOnboarding, onShowMod
       {showGroupQr && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-base)]/70 p-6" onClick={() => setShowGroupQr(false)}>
           <div
-            className="relative w-full max-w-md bg-[var(--bg-primary)] border border-[var(--border-primary)] p-6 md:p-8"
+            className="relative w-full max-w-xl bg-[var(--bg-primary)] border border-[var(--border-primary)] p-6 md:p-8"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -317,8 +318,13 @@ const Dashboard: React.FC<Props> = ({ onOpenProject, onShowOnboarding, onShowMod
             <div className="space-y-4 text-center">
               <div className="text-[var(--text-primary)] text-sm font-bold tracking-widest uppercase">加入交流群</div>
               <div className="text-[10px] text-[var(--text-tertiary)] font-mono">扫码进入产品体验群</div>
-              <div className="inline-block">
-                <img src={qrCodeImg} alt="交流群二维码" className="w-64 h-64 object-contain" />
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <div>
+                  <img src={qrCodeImg} alt="交流群二维码" className="w-56 h-56 object-contain" />
+                </div>
+                <div>
+                  <img src={wxQrImg} alt="备用微信群二维码" className="w-56 h-56 object-contain" />
+                </div>
               </div>
               <div className="text-[10px] text-[var(--text-muted)] font-mono">二维码有效期请以实际为准</div>
             </div>
