@@ -154,9 +154,12 @@
 
 直接下载安装包，开箱即用，无需配置开发环境：
 
-**[📥 下载 BigBanana AI Director 客户端 (Windows)](https://tree456.oss-cn-beijing.aliyuncs.com/BigBanana%20AI%20Director%20Setup%201.0.0.exe?Expires=1770908400&OSSAccessKeyId=TMP.3KofXPaUNdnvbUpRP5MqiRmMMxuGwiftTgQfn7U3ntRtFvMYHpMB2kPb17r7rPXksvo7DFncrz4dWSfs3K33wVgGXfnCy4&Signature=wiOZbN%2BcZNuyZdiEI3KR1CqkFhM%3D)**
+**📥 下载 BigBanana AI Director 客户端 (Windows)**
 
-> 💡 下载后双击安装即可使用，支持 Windows 系统。
+我用夸克网盘给你分享了「大香蕉漫剧平台桌面版」，点击链接或复制整段内容，打开「夸克APP」即可获取。
+链接：https://pan.quark.cn/s/dfbfe01eefdf
+
+> 💡 打开链接后下载安装包，双击安装即可使用，支持 Windows 系统。
 
 ---
 

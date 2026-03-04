@@ -152,9 +152,12 @@ QRコードをスキャンして **BigBanana プロダクト体験グループ**
 
 インストーラーをダウンロードして、すぐに使い始められます。開発環境の構築は不要です：
 
-**[📥 BigBanana AI Director クライアントをダウンロード (Windows)](https://tree456.oss-cn-beijing.aliyuncs.com/BigBanana%20AI%20Director%20Setup%201.0.0.exe?Expires=1770908400&OSSAccessKeyId=TMP.3KofXPaUNdnvbUpRP5MqiRmMMxuGwiftTgQfn7U3ntRtFvMYHpMB2kPb17r7rPXksvo7DFncrz4dWSfs3K33wVgGXfnCy4&Signature=wiOZbN%2BcZNuyZdiEI3KR1CqkFhM%3D)**
+**📥 BigBanana AI Director クライアントをダウンロード (Windows)**
 
-> 💡 ダウンロードしてインストールするだけで使えます。Windows に対応しています。
+Quark ドライブの共有ファイルにアクセス：
+リンク: https://pan.quark.cn/s/dfbfe01eefdf
+
+> 💡 リンクを開いてインストーラーをダウンロードし、ダブルクリックしてインストールしてください。Windows に対応しています。
 
 ---
 
