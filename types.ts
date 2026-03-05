@@ -24,6 +24,8 @@ export interface PromptVersion {
 export interface StoryboardPromptTemplateConfig {
   shotGeneration: string;
   shotRepair: string;
+  actionSuggestion: string;
+  shotSplit: string;
 }
 
 /**
@@ -36,6 +38,9 @@ export interface KeyframePromptTemplateConfig {
   propWithImageGuide: string;
   propWithoutImageGuide: string;
   nineGridSourceMeta: string;
+  optimizeBoth: string;
+  optimizeSingle: string;
+  enhance: string;
 }
 
 /**
@@ -47,6 +52,9 @@ export interface NineGridPromptTemplateConfig {
   imagePrefix: string;
   imagePanelTemplate: string;
   imageSuffix: string;
+  imageNoTextConstraint: string;
+  translatePrompt: string;
+  rewritePrompt: string;
 }
 
 /**
@@ -59,6 +67,10 @@ export interface VideoPromptTemplateConfig {
   sora2NineGridEnglish: string;
   veoStartOnly: string;
   veoStartEnd: string;
+  nineGridGuardrailsChinese: string;
+  nineGridGuardrailsEnglish: string;
+  endFrameConstraintNote: string;
+  ignoredEndFrameNote: string;
 }
 
 /**

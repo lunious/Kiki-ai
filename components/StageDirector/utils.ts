@@ -383,7 +383,7 @@ export const buildKeyframePromptWithAI = async (
   
   // Use direct import from aiService; keep fallback behavior if enhancement fails.
   try {
-    const enhanced = await enhanceKeyframePrompt(basicPrompt, visualStyle, cameraMovement, frameType);
+    const enhanced = await enhanceKeyframePrompt(basicPrompt, visualStyle, cameraMovement, frameType, undefined, promptTemplates);
     return enhanced;
   } catch (error) {
     console.error('AI增强失败,使用基础提示词:', error);
@@ -434,36 +434,40 @@ const compactPromptField = (
   return candidate.length < normalized.length ? `${candidate}...` : candidate;
 };
 
-const buildNineGridVideoGuardrails = (panelCount: number, language: string): string => {
+const buildNineGridVideoGuardrails = (
+  panelCount: number,
+  language: string,
+  promptTemplates?: PromptTemplateConfig
+): string => {
   const count = Math.max(1, Math.floor(panelCount || 1));
-  if (isChineseLanguage(language)) {
-    return `${NINE_GRID_VIDEO_GUARDRAIL_MARKER}
-HARD RULES（最高优先级）：
-- 视频必须始终为单画面全屏输出，任意时刻只能有一个镜头占满100%画面。
-- 严禁九宫格/六宫格/四宫格分屏、拼贴、画中画、多窗口、缩略图墙、多个面板并行动画。
-- 网格图只作为镜头顺序参考，不是可展示内容。
-- 镜头必须按 1→${count} 顺序逐个切换（可硬切或自然转场），禁止多个面板同时出现或同时运动。
-- 若冲突，优先保证“单画面全屏 + 顺序切镜”，宁可忽略网格排版外观。`;
-  }
+  const templates = promptTemplates || resolvePromptTemplateConfig();
+  const template = isChineseLanguage(language)
+    ? withTemplateFallback(
+        templates.video.nineGridGuardrailsChinese,
+        DEFAULT_PROMPT_TEMPLATE_CONFIG.video.nineGridGuardrailsChinese
+      )
+    : withTemplateFallback(
+        templates.video.nineGridGuardrailsEnglish,
+        DEFAULT_PROMPT_TEMPLATE_CONFIG.video.nineGridGuardrailsEnglish
+      );
 
+  const guardrails = renderPromptTemplate(template, { panelCount: count });
   return `${NINE_GRID_VIDEO_GUARDRAIL_MARKER}
-HARD RULES (HIGHEST PRIORITY):
-- The video must remain single-shot full-screen at all times, with exactly one shot occupying 100% of the frame.
-- Strictly forbid split-screen, collage, picture-in-picture, multi-window, thumbnail wall, or parallel multi-panel animation.
-- The grid image is shot-order reference only, never visible output content.
-- Transition strictly in order 1→${count}, one shot at a time (hard cuts or motivated transitions); never show multiple panels simultaneously.
-- If constraints conflict, prioritize "single full-screen shot + sequential cuts" over preserving the grid layout appearance.`;
+${guardrails}`;
 };
 
 export const ensureNineGridVideoPromptGuardrails = (
   prompt: string,
   panelCount: number,
-  language: string
+  language: string,
+  promptTemplates?: PromptTemplateConfig
 ): string => {
   const base = String(prompt || '').trim();
   if (!base) return base;
   if (base.includes(NINE_GRID_VIDEO_GUARDRAIL_MARKER)) return base;
-  return `${base}\n\n${buildNineGridVideoGuardrails(panelCount, language)}`;
+  return `${base}
+
+${buildNineGridVideoGuardrails(panelCount, language, promptTemplates)}`;
 };
 
 const buildNineGridPanelDescriptionsWithBudget = (
@@ -551,12 +555,25 @@ export const buildVideoPrompt = (
   const hasUsableEndFrame = !!context?.hasEndFrame && routing.supportsEndFrame;
   const hasIgnoredEndFrame = !!context?.hasEndFrame && !routing.supportsEndFrame;
 
+  const endFrameConstraintTemplate = withTemplateFallback(
+    templates.video.endFrameConstraintNote,
+    DEFAULT_PROMPT_TEMPLATE_CONFIG.video.endFrameConstraintNote
+  );
+  const ignoredEndFrameTemplate = withTemplateFallback(
+    templates.video.ignoredEndFrameNote,
+    DEFAULT_PROMPT_TEMPLATE_CONFIG.video.ignoredEndFrameNote
+  );
+
   const appendCapabilityNotes = (prompt: string): string => {
     const endFrameConstraint = hasUsableEndFrame
-      ? '\n\nEND FRAME CONSTRAINT: Drive the final moment toward the provided end-frame composition, pose, and scene continuity.'
+      ? `
+
+${renderPromptTemplate(endFrameConstraintTemplate, {})}`
       : '';
     const ignoredEndFrameNote = hasIgnoredEndFrame
-      ? '\n\nCapability routing: this model is start-frame-driven, so end-frame input is ignored automatically.'
+      ? `
+
+${renderPromptTemplate(ignoredEndFrameTemplate, {})}`
       : '';
     return fitVideoPromptLength(`${prompt}${endFrameConstraint}${ignoredEndFrameNote}`);
   };
@@ -602,7 +619,7 @@ export const buildVideoPrompt = (
       .replace('{visualStyle}', visualStyleAnchor)
       .replace('{language}', language);
     return appendCapabilityNotes(
-      ensureNineGridVideoPromptGuardrails(routedPrompt, panelCount, language)
+      ensureNineGridVideoPromptGuardrails(routedPrompt, panelCount, language, promptTemplates)
     );
   }
   

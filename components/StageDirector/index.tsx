@@ -651,7 +651,7 @@ const StageDirector: React.FC<Props> = ({ project, updateProject, onApiKeyError,
     }
     if (isNineGridMode) {
       const panelCountForGuard = shot.nineGrid?.layout?.panelCount || shot.nineGrid?.panels?.length || 9;
-      videoPrompt = ensureNineGridVideoPromptGuardrails(videoPrompt, panelCountForGuard, projectLanguage);
+      videoPrompt = ensureNineGridVideoPromptGuardrails(videoPrompt, panelCountForGuard, projectLanguage, promptTemplates);
     }
 
     const videoPromptLength = Array.from(videoPrompt).length;
@@ -1056,7 +1056,8 @@ const StageDirector: React.FC<Props> = ({ project, updateProject, onApiKeyError,
         cameraMovement,
         aiInstruction,
         undefined,
-        targetDurationSeconds
+        targetDurationSeconds,
+        promptTemplates
       );
       
       // 更新编辑框的内容
@@ -1110,7 +1111,9 @@ const StageDirector: React.FC<Props> = ({ project, updateProject, onApiKeyError,
           atmosphere: scene.atmosphere
         },
         characterNames,
-        visualStyle
+        visualStyle,
+        undefined,
+        promptTemplates
       );
       
       // 更新关键帧的visualPrompt
@@ -1172,7 +1175,9 @@ const StageDirector: React.FC<Props> = ({ project, updateProject, onApiKeyError,
           atmosphere: scene.atmosphere
         },
         characterNames,
-        visualStyle
+        visualStyle,
+        undefined,
+        promptTemplates
       );
       
       // 同时更新起始帧和结束帧
@@ -1260,7 +1265,8 @@ const StageDirector: React.FC<Props> = ({ project, updateProject, onApiKeyError,
         },
         characterNames,
         visualStyle,
-        shotGenerationModel
+        shotGenerationModel,
+        promptTemplates
       );
       
       // 4. 生成子镜头对象
@@ -1525,7 +1531,7 @@ const StageDirector: React.FC<Props> = ({ project, updateProject, onApiKeyError,
     const model = project.shotGenerationModel || 'gpt-5.2';
     setIsNineGridTranslating(true);
     try {
-      const translations = await translateNineGridPanels(activeShot.nineGrid.panels, model);
+      const translations = await translateNineGridPanels(activeShot.nineGrid.panels, model, promptTemplates);
       const translationMap = new Map<number, string>(
         translations.map((item) => [item.index, item.descriptionZh])
       );
@@ -1586,7 +1592,8 @@ const StageDirector: React.FC<Props> = ({ project, updateProject, onApiKeyError,
               }
             : undefined,
         },
-        model
+        model,
+        promptTemplates
       );
 
       updateShot(activeShot.id, (s) => {
@@ -1938,7 +1945,7 @@ const StageDirector: React.FC<Props> = ({ project, updateProject, onApiKeyError,
               );
               if (editIsNineGridMode && promptValue) {
                 const panelCountForGuard = activeShot.nineGrid?.layout?.panelCount || activeShot.nineGrid?.panels?.length || 9;
-                promptValue = ensureNineGridVideoPromptGuardrails(promptValue, panelCountForGuard, editProjectLanguage);
+                promptValue = ensureNineGridVideoPromptGuardrails(promptValue, panelCountForGuard, editProjectLanguage, promptTemplates);
               }
               setEditModal({ 
                 type: 'video', 
