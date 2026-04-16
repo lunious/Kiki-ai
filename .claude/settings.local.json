@@ -14,7 +14,12 @@
       "Bash(netstat -ano)",
       "Bash(findstr :3000)",
       "Bash(taskkill *)",
-      "Bash(powershell *)"
+      "Bash(powershell *)",
+      "Bash(git clone *)",
+      "Bash(npx tsc *)",
+      "Bash(grep *)",
+      "Bash(npm install *)",
+      "Bash(npm list *)"
     ]
   }
 }

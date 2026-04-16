@@ -22,6 +22,7 @@ import ActionButtons from './ActionButtons';
 import SecondaryOptions from './SecondaryOptions';
 import VideoPlayerModal from './VideoPlayerModal';
 import RenderLogsModal from './RenderLogsModal';
+import AIVideoEditorModal from '../AIVideoEditor';
 import { useAlert } from '../GlobalAlert';
 import {
   useBackupTransfer,
@@ -60,6 +61,9 @@ const StageExport: React.FC<Props> = ({ project }) => {
   const [currentShotIndex, setCurrentShotIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // AI Video Editor state
+  const [showAIVideoEditor, setShowAIVideoEditor] = useState(false);
 
   // Auto-play when shot changes
   useEffect(() => {
@@ -246,7 +250,7 @@ const StageExport: React.FC<Props> = ({ project }) => {
               onExportQualityChange={setExportQuality}
               onPreview={openVideoPlayer}
               onDownloadMaster={handleDownloadMaster}
-              onOpenAIVideoEditor={() => showAlert('暂未开发', { type: 'info', title: '提示' })}
+              onOpenAIVideoEditor={() => setShowAIVideoEditor(true)}
             />
           </div>
 
@@ -301,6 +305,15 @@ const StageExport: React.FC<Props> = ({ project }) => {
         className="hidden"
         onChange={handleImportFileChange}
       />
+
+      {/* AI Video Editor Modal */}
+      {showAIVideoEditor && (
+        <AIVideoEditorModal
+          open={showAIVideoEditor}
+          onClose={() => setShowAIVideoEditor(false)}
+          completedShots={completedShots}
+        />
+      )}
     </div>
   );
 };

@@ -1,0 +1,341 @@
+import { tool } from "ai"
+import { z } from "zod"
+
+// Action types returned by tools - client interprets these
+export type AgentAction =
+  | { action: "SPLIT_CLIP"; payload: { clipId: string; splitTimeSeconds: number } }
+  | { action: "SPLIT_AT_TIME"; payload: { timeSeconds: number; trackId?: string } }
+  | { action: "TRIM_CLIP"; payload: { clipId: string; trimStartSeconds?: number; trimEndSeconds?: number } }
+  | { action: "DELETE_CLIP"; payload: { clipId: string } }
+  | { action: "DELETE_AT_TIME"; payload: { timeSeconds: number; trackId?: string } }
+  | { action: "DELETE_ALL_CLIPS"; payload: { trackId?: string } }
+  | { action: "MOVE_CLIP"; payload: { clipId: string; newStartTimeSeconds?: number; newTrackId?: string } }
+  | { action: "APPLY_EFFECT"; payload: { clipId: string; effect: string } }
+  | { action: "APPLY_CHROMAKEY"; payload: { clipId: string; enabled: boolean; keyColor?: string; similarity?: number; smoothness?: number; spill?: number } }
+  | { action: "ADD_MEDIA_TO_TIMELINE"; payload: { mediaId: string; trackId: string; startTimeSeconds?: number } }
+  | { action: "DUB_CLIP"; payload: { clipId: string; targetLanguage: string } }
+  | { action: "CREATE_MORPH_TRANSITION"; payload: { fromClipId: string; toClipId: string; durationSeconds: number } }
+  | { action: "ISOLATE_VOICE"; payload: { clipId: string } }
+
+// Define the input schemas
+const splitClipInput = z.object({
+  clipId: z.string().describe("The ID of the clip to split"),
+  splitTimeSeconds: z
+    .number()
+    .describe("The timeline position (in seconds) where to split the clip"),
+})
+
+const splitAtTimeInput = z.object({
+  timeSeconds: z
+    .number()
+    .describe("The timeline position (in seconds) where to split. The clip at this position will be automatically found and split."),
+  trackId: z
+    .string()
+    .optional()
+    .describe("Optional track ID to specify which track (V1, V2, A1, A2). If not provided, splits clips on all tracks at that time."),
+})
+
+const trimClipInput = z.object({
+  clipId: z.string().describe("The ID of the clip to trim"),
+  trimStartSeconds: z
+    .number()
+    .optional()
+    .describe("Seconds to trim (remove) from the start of the clip"),
+  trimEndSeconds: z
+    .number()
+    .optional()
+    .describe("Seconds to trim (remove) from the end of the clip"),
+})
+
+const deleteClipInput = z.object({
+  clipId: z.string().describe("The ID of the clip to delete"),
+})
+
+const deleteAtTimeInput = z.object({
+  timeSeconds: z
+    .number()
+    .describe("The timeline position (in seconds). The clip at this position will be deleted."),
+  trackId: z
+    .string()
+    .optional()
+    .describe("Optional track ID (V1, V2, A1, A2). If not provided, deletes clips on all tracks at that time."),
+})
+
+const deleteAllClipsInput = z.object({
+  trackId: z
+    .string()
+    .optional()
+    .describe("Optional track ID (V1, V2, A1, A2). If provided, only deletes clips on that track. If not provided, deletes ALL clips from the timeline."),
+})
+
+const moveClipInput = z.object({
+  clipId: z.string().describe("The ID of the clip to move"),
+  newStartTimeSeconds: z
+    .number()
+    .optional()
+    .describe("New start position on the timeline in seconds"),
+  newTrackId: z
+    .string()
+    .optional()
+    .describe("ID of the track to move to (V1, V2, A1, or A2)"),
+})
+
+const applyEffectInput = z.object({
+  clipId: z.string().describe("The ID of the clip to apply the effect to"),
+  effect: z
+    .enum(["none", "grayscale", "sepia", "invert", "cyberpunk", "noir", "vhs", "glitch", "ascii"])
+    .describe("The effect preset to apply"),
+})
+
+const applyChromakeyInput = z.object({
+  clipId: z.string().describe("The ID of the clip to apply green screen removal to"),
+  enabled: z.boolean().describe("Whether to enable or disable chromakey (green screen removal)"),
+  keyColor: z
+    .string()
+    .optional()
+    .describe("Hex color to remove (e.g., '#00FF00' for green, '#0000FF' for blue). Defaults to green (#00FF00) if not specified."),
+  similarity: z
+    .number()
+    .min(0)
+    .max(1)
+    .optional()
+    .describe("How close colors must be to the key color to be removed (0-1). Higher values remove more colors. Defaults to 0.4."),
+  smoothness: z
+    .number()
+    .min(0)
+    .max(1)
+    .optional()
+    .describe("Edge softness (0-1). Higher values create softer edges. Defaults to 0.1."),
+  spill: z
+    .number()
+    .min(0)
+    .max(1)
+    .optional()
+    .describe("Spill suppression strength (0-1). Removes color bleed from edges. Defaults to 0.3."),
+})
+
+const addMediaToTimelineInput = z.object({
+  mediaId: z.string().describe("The ID of the media file to add from the media pool"),
+  trackId: z.string().describe("The track to add to (V1, V2 for video; A1, A2 for audio)"),
+  startTimeSeconds: z
+    .number()
+    .optional()
+    .describe("Where to place it on the timeline in seconds (defaults to end of track)"),
+})
+
+const dubClipInput = z.object({
+  clipId: z.string().describe("The ID of the clip to dub/translate"),
+  targetLanguage: z
+    .string()
+    .describe(
+      "Target language code (ISO-639-1). Supported: en, es, fr, de, pt, zh, ja, ar, ru, hi, ko, id, it, nl, tr, pl, sv, fil, ms, ro, uk, el, cs, da, fi, bg, hr, sk, ta"
+    ),
+  replaceOriginal: z
+    .boolean()
+    .optional()
+    .describe("Whether to replace the original clip with the dubbed version (default: false, adds as new media)"),
+})
+
+const createMorphTransitionInput = z.object({
+  fromClipId: z.string().describe("The ID of the clip to morph from (transition start)"),
+  toClipId: z.string().describe("The ID of the clip to morph to (transition end)"),
+  durationSeconds: z
+    .number()
+    .min(5)
+    .max(10)
+    .default(5)
+    .describe("Duration of the morph transition in seconds. Only 5 or 10 seconds are supported. Will be rounded to nearest (5 or 10). Default: 5"),
+})
+
+const isolateVoiceInput = z.object({
+  clipId: z.string().describe("The ID of the clip to isolate voice/vocals from"),
+})
+
+export const videoEditingTools = {
+  // Tool: Split a clip at a specific time (requires clip ID)
+  splitClip: tool({
+    description:
+      "Split a specific clip into two parts at a timeline position. Use this when you know the exact clip ID to split.",
+    inputSchema: splitClipInput,
+    execute: async (input: z.infer<typeof splitClipInput>) => {
+      return {
+        action: "SPLIT_CLIP" as const,
+        payload: { clipId: input.clipId, splitTimeSeconds: input.splitTimeSeconds },
+      }
+    },
+  }),
+
+  // Tool: Split at a timeline position (automatically finds the clip)
+  splitAtTime: tool({
+    description:
+      "Split at a specific timeline position. Automatically finds which clip exists at that time and splits it. Use this when the user says 'split at X seconds' or 'split at the playhead' without specifying a clip.",
+    inputSchema: splitAtTimeInput,
+    execute: async (input: z.infer<typeof splitAtTimeInput>) => {
+      return {
+        action: "SPLIT_AT_TIME" as const,
+        payload: { timeSeconds: input.timeSeconds, trackId: input.trackId },
+      }
+    },
+  }),
+
+  // Tool: Trim clip start or end
+  trimClip: tool({
+    description:
+      "Trim the start or end of a clip to remove unwanted parts. Specify how many seconds to remove from the beginning and/or end.",
+    inputSchema: trimClipInput,
+    execute: async (input: z.infer<typeof trimClipInput>) => {
+      return {
+        action: "TRIM_CLIP" as const,
+        payload: { clipId: input.clipId, trimStartSeconds: input.trimStartSeconds, trimEndSeconds: input.trimEndSeconds },
+      }
+    },
+  }),
+
+  // Tool: Delete a clip by ID
+  deleteClip: tool({
+    description:
+      "Remove a specific clip from the timeline by its ID. Use this when you know the exact clip ID to delete.",
+    inputSchema: deleteClipInput,
+    execute: async (input: z.infer<typeof deleteClipInput>) => {
+      return {
+        action: "DELETE_CLIP" as const,
+        payload: { clipId: input.clipId },
+      }
+    },
+  }),
+
+  // Tool: Delete at a timeline position (automatically finds the clip)
+  deleteAtTime: tool({
+    description:
+      "Delete the clip at a specific timeline position. Automatically finds which clip exists at that time and removes it. Use this when the user says 'delete at X seconds' or 'delete at the playhead' without specifying a clip.",
+    inputSchema: deleteAtTimeInput,
+    execute: async (input: z.infer<typeof deleteAtTimeInput>) => {
+      return {
+        action: "DELETE_AT_TIME" as const,
+        payload: { timeSeconds: input.timeSeconds, trackId: input.trackId },
+      }
+    },
+  }),
+
+  // Tool: Delete all clips
+  deleteAllClips: tool({
+    description:
+      "Delete all clips from the timeline. Use this when the user says 'delete all clips', 'clear the timeline', 'remove everything', or 'start fresh'. Can optionally delete only clips on a specific track.",
+    inputSchema: deleteAllClipsInput,
+    execute: async (input: z.infer<typeof deleteAllClipsInput>) => {
+      return {
+        action: "DELETE_ALL_CLIPS" as const,
+        payload: { trackId: input.trackId },
+      }
+    },
+  }),
+
+  // Tool: Move a clip
+  moveClip: tool({
+    description:
+      "Move a clip to a new position on the timeline or to a different track. Use this to reposition clips.",
+    inputSchema: moveClipInput,
+    execute: async (input: z.infer<typeof moveClipInput>) => {
+      return {
+        action: "MOVE_CLIP" as const,
+        payload: { clipId: input.clipId, newStartTimeSeconds: input.newStartTimeSeconds, newTrackId: input.newTrackId },
+      }
+    },
+  }),
+
+  // Tool: Apply effect to clip
+  applyEffect: tool({
+    description:
+      "Apply a visual effect preset to a clip. Available effects: grayscale, sepia, invert, cyberpunk, noir, vhs, glitch, ascii, or none to remove effects.",
+    inputSchema: applyEffectInput,
+    execute: async (input: z.infer<typeof applyEffectInput>) => {
+      return {
+        action: "APPLY_EFFECT" as const,
+        payload: { clipId: input.clipId, effect: input.effect },
+      }
+    },
+  }),
+
+  // Tool: Apply chromakey (green screen removal)
+  applyChromakey: tool({
+    description:
+      "Remove green screen (or any color) from a video clip, making it transparent. Use this when the user wants to remove a green screen, blue screen, or any colored background from a video. You can enable/disable it, and optionally adjust the color to remove, similarity threshold, edge smoothness, and spill suppression.",
+    inputSchema: applyChromakeyInput,
+    execute: async (input: z.infer<typeof applyChromakeyInput>) => {
+      return {
+        action: "APPLY_CHROMAKEY" as const,
+        payload: {
+          clipId: input.clipId,
+          enabled: input.enabled,
+          keyColor: input.keyColor,
+          similarity: input.similarity,
+          smoothness: input.smoothness,
+          spill: input.spill,
+        },
+      }
+    },
+  }),
+
+  // Tool: Add media to timeline
+  addMediaToTimeline: tool({
+    description:
+      "Add a media file from the media pool to the timeline. Specify which track and optionally where to place it.",
+    inputSchema: addMediaToTimelineInput,
+    execute: async (input: z.infer<typeof addMediaToTimelineInput>) => {
+      return {
+        action: "ADD_MEDIA_TO_TIMELINE" as const,
+        payload: { mediaId: input.mediaId, trackId: input.trackId, startTimeSeconds: input.startTimeSeconds },
+      }
+    },
+  }),
+
+  // Tool: Dub/translate a clip to another language
+  dubClip: tool({
+    description:
+      "Dub (translate) the audio of a video clip to another language using AI. This preserves the emotion, timing, and tone of the original speakers while translating the speech. The original clip on the timeline will be automatically replaced with the dubbed version. **IMPORTANT: The clip must be uploaded to cloud storage first (has a storageUrl). This operation can take several minutes for longer clips.** Supported languages: English (en), Spanish (es), French (fr), German (de), Portuguese (pt), Chinese (zh), Japanese (ja), Arabic (ar), Russian (ru), Hindi (hi), Korean (ko), Indonesian (id), Italian (it), Dutch (nl), Turkish (tr), Polish (pl), Swedish (sv), Filipino (fil), Malay (ms), Romanian (ro), Ukrainian (uk), Greek (el), Czech (cs), Danish (da), Finnish (fi), Bulgarian (bg), Croatian (hr), Slovak (sk), Tamil (ta).",
+    inputSchema: dubClipInput,
+    execute: async (input: z.infer<typeof dubClipInput>) => {
+      return {
+        action: "DUB_CLIP" as const,
+        payload: {
+          clipId: input.clipId,
+          targetLanguage: input.targetLanguage,
+          replaceOriginal: true,
+        },
+      }
+    },
+  }),
+
+  // Tool: Create AI morph transition between clips
+  createMorphTransition: tool({
+    description:
+      "Create an AI-powered morph transition between TWO SEQUENTIAL clips on the SAME track (the second clip must start right after the first clip ends - they must be adjacent, not overlapping). This extracts the last frame from the first clip and the first frame from the second clip, then uses AI to generate a smooth morphing video that transitions between them. The generated transition video is automatically inserted on the timeline between the two clips. CRITICAL: Only use this for clips that are next to each other on the same track. Do NOT use this for overlapping clips on different tracks.",
+    inputSchema: createMorphTransitionInput,
+    execute: async (input: z.infer<typeof createMorphTransitionInput>) => {
+      return {
+        action: "CREATE_MORPH_TRANSITION" as const,
+        payload: {
+          fromClipId: input.fromClipId,
+          toClipId: input.toClipId,
+          durationSeconds: input.durationSeconds,
+        },
+      }
+    },
+  }),
+
+  // Tool: Isolate voice/vocals from audio
+  isolateVoice: tool({
+    description:
+      "Remove background noise and isolate voice/vocals from a video clip using AI. This removes music, ambient noise, and other sounds, keeping only the speaking voice. The original clip on the timeline will be automatically replaced with the voice-isolated version. IMPORTANT: The clip must be uploaded to cloud storage first (has a storageUrl). This operation can take up to a minute. Use this when the user wants to 'remove background noise', 'isolate voice', 'clean up audio', or 'remove music from dialogue'.",
+    inputSchema: isolateVoiceInput,
+    execute: async (input: z.infer<typeof isolateVoiceInput>) => {
+      return {
+        action: "ISOLATE_VOICE" as const,
+        payload: {
+          clipId: input.clipId,
+          replaceOriginal: true,
+        },
+      }
+    },
+  }),
+}
