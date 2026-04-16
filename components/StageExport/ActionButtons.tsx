@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Download, FileVideo, Loader2, Scissors } from 'lucide-react';
+import { Play, Download, FileVideo, Loader2 } from 'lucide-react';
 import { DownloadState } from './constants';
 import { useAlert } from '../GlobalAlert';
 import { MasterExportMode, MasterVideoQuality } from '../../services/exportService';
@@ -15,7 +15,6 @@ interface Props {
   onExportQualityChange: (quality: MasterVideoQuality) => void;
   onPreview: () => void;
   onDownloadMaster: () => void;
-  onOpenAIVideoEditor: () => void;
 }
 
 const ActionButtons: React.FC<Props> = ({
@@ -28,8 +27,7 @@ const ActionButtons: React.FC<Props> = ({
   onExportModeChange,
   onExportQualityChange,
   onPreview,
-  onDownloadMaster,
-  onOpenAIVideoEditor
+  onDownloadMaster
 }) => {
   const { showAlert } = useAlert();
   const { isDownloading, phase, progress: downloadProgress } = downloadState;
@@ -48,7 +46,7 @@ const ActionButtons: React.FC<Props> = ({
   const loadingActionClass = 'h-10 rounded-lg border border-[var(--accent-border)] bg-[var(--accent)] text-[var(--accent-text)] cursor-wait text-xs font-bold flex items-center justify-center gap-2';
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
       <div className={cardBase}>
         <div className="space-y-1.5">
           <p className={titleClass}>预览校验</p>
@@ -117,23 +115,6 @@ const ActionButtons: React.FC<Props> = ({
             <Download className="w-4 h-4" />
           )}
           {isDownloading ? `${phase} ${downloadProgress}%` : modeLabel}
-        </button>
-      </div>
-
-      <div className={cardBase}>
-        <div className="space-y-1.5">
-          <p className={titleClass}>AI 剪辑</p>
-          <p className={descClass}>在内置时间线里做粗剪、调序和镜头裁剪。</p>
-        </div>
-        <button
-          onClick={onOpenAIVideoEditor}
-          disabled={completedShotsCount === 0}
-          className={
-            completedShotsCount > 0 ? ghostActionClass : disabledActionClass
-          }
-        >
-          <Scissors className="w-4 h-4" />
-          打开 AI 剪辑
         </button>
       </div>
 

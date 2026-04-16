@@ -7,6 +7,7 @@
       "Bash(git branch:*)",
       "Bash(git push:*)",
       "Bash(git fetch:*)",
+<<<<<<< HEAD
       "Bash(git add:*)",
       "Bash(ls *)",
       "Bash(npm run *)",
@@ -20,6 +21,9 @@
       "Bash(grep *)",
       "Bash(npm install *)",
       "Bash(npm list *)"
+=======
+      "Bash(git add:*)"
+>>>>>>> parent of 36b9593 (no message)
     ]
   }
 }

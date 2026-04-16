@@ -250,7 +250,10 @@ const StageExport: React.FC<Props> = ({ project }) => {
               onExportQualityChange={setExportQuality}
               onPreview={openVideoPlayer}
               onDownloadMaster={handleDownloadMaster}
+<<<<<<< HEAD
               onOpenAIVideoEditor={() => setShowAIVideoEditor(true)}
+=======
+>>>>>>> parent of 36b9593 (no message)
             />
           </div>
 
