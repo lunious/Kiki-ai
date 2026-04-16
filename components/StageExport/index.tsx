@@ -246,6 +246,7 @@ const StageExport: React.FC<Props> = ({ project }) => {
               onExportQualityChange={setExportQuality}
               onPreview={openVideoPlayer}
               onDownloadMaster={handleDownloadMaster}
+              onOpenAIVideoEditor={() => showAlert('暂未开发', { type: 'info', title: '提示' })}
             />
           </div>
 
